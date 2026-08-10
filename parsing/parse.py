@@ -47,6 +47,45 @@ class Parser:
             return False
         return True
 
+    def parse_tags(self, tokens: list[str]) -> dict[str, str] | None:
+        """
+        Parse a list of key=value and return a dict
+        """
+        tags: dict[str, str] = {}
+        for token in tokens:
+            if "=" not in token:
+                print(f"invalid tag '{token}': expected key=value")
+                return None
+            tag_key, tag_value = token.split("=", 1)
+            tags[tag_key] = tag_value
+        return tags
+
+    def _parse_hub_line(
+        self, value: str, expected_name: str | None = None
+    ) -> tuple[str, int, int, dict[str, str]] | None:
+        """
+        Parse "<name> <x> <y> [tag=val ...]" regardless
+        of the order of the tags
+        """
+        line = value.replace("[", "").replace("]", "").split()
+        if len(line) < 3:
+            print("hub line is missing a name and/or coordinates")
+            return None
+        name = line[0]
+        if expected_name is not None and name != expected_name:
+            print(f"hub should be named '{expected_name}'")
+            return None
+        try:
+            x = int(line[1])
+            y = int(line[2])
+        except ValueError:
+            print("coordinate should be an integer")
+            return None
+        tags = self.parse_tags(line[3:])
+        if tags is None:
+            return None
+        return name, x, y, tags
+
     def parse_hub(self, conf: dict[str, str] | None) -> bool:
         """
         Parse the start_hub, all the hubs and end_hub
@@ -55,172 +94,50 @@ class Parser:
         if not conf:
             return False
 
+        colors = ["blue", "red", "green", "orange", "yellow"]
+        zones = ["normal", "blocked", "restricted", "priority"]
+
         for key in conf:
-            if key.startswith("start_hub"):
-                line = conf["start_hub"].replace(
-                    "[", "").replace("]", "").split(" ")
-                for i in range(1, len(line)):
-                    if i == 1:
-                        try:
-                            name = line[i]
-                            if name != "start":
-                                raise Exception(
-                                    "start_hub should be the first word")
-                        except Exception as e:
-                            print(e)
-                            return False
+            if key == "start_hub":
+                parsed = self._parse_hub_line(conf[key], "start")
+                if parsed is None:
+                    return False
+                _, _, _, tags = parsed
+                if "color" in tags and tags["color"] not in colors:
+                    print("colors allowed are blue, red, green, "
+                          "orange and yellow")
+                    return False
 
-                    if i == 2:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
+            elif key.startswith("hub"):
+                parsed = self._parse_hub_line(conf[key])
+                if parsed is None:
+                    return False
+                _, _, _, tags = parsed
+                if "zone" in tags and tags["zone"] not in zones:
+                    print("zones should be normal, blocked, "
+                          "restricted or priority")
+                    return False
+                if "color" in tags and tags["color"] not in colors:
+                    print("colors allowed are blue, red, green, "
+                          "orange and yellow")
+                    return False
+                if "max_drones" in tags:
+                    try:
+                        max_drones = int(tags["max_drones"])
+                        if max_drones < 1:
+                            raise ValueError
+                    except ValueError:
+                        print("max_drones should be an integer >= 1")
+                        return False
 
-                    if i == 3:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
-
-                    if i == 4:
-                        if line[i].startswith("color"):
-                            color = line[i].split("=")[1]
-                            colors = [
-                                "blue", "red", "green", "orange", "yellow"]
-                            try:
-                                if color not in colors:
-                                    raise Exception(
-                                        "colors allowed are blue, red, green,"
-                                        " orange and yellow")
-                            except Exception as e:
-                                print(e)
-                                return False
-                        else:
-                            raise Exception("should start with color")
-
-                    if i == 5:
-                        if line[i].startswith("max_drones"):
-                            max = line[i].split("=")[1]
-                            try:
-                                int(max)
-                                if int(max) < 1:
-                                    raise Exception("max_drones should be an "
-                                                    "integer >= 1")
-                            except Exception:
-                                print("max_drones should be an integer >= 1")
-                                return False
-
-            if key.startswith("hub"):
-                line = conf[key].replace("[", "").replace("]", "").split(" ")
-                for i in range(2, len(line)):
-                    if i == 2:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
-
-                    if i == 3:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
-
-                    if i == 4 or i == 5 or i == 6:
-                        if line[i].startswith("zone"):
-                            zone = line[i].split("=")[1]
-                            zones = [
-                                "normal", "blocked", "restricted", "priority"]
-                            try:
-                                if zone not in zones:
-                                    raise Exception(
-                                        "zones should be normal, blocked, "
-                                        "restricted or priority")
-                            except Exception as e:
-                                print(e)
-                                return False
-
-                        if line[i].startswith("color"):
-                            color = line[i].split("=")[1]
-                            colors = [
-                                "blue", "red", "green", "orange", "yellow"]
-                            try:
-                                if color not in colors:
-                                    raise Exception(
-                                        "colors allowed are blue, red,"
-                                        " green, orange and yellow")
-                            except Exception as e:
-                                print(e)
-                                return False
-
-                        if line[i].startswith("max_drones"):
-                            max = line[i].split("=")[1]
-                            try:
-                                int(max)
-                                if int(max) < 1:
-                                    raise Exception("max_drones should be an "
-                                                    "integer >= 1")
-                            except Exception:
-                                print("max_drones should be an integer >= 1")
-                                return False
-
-            if key.startswith("end_hub"):
-                line = conf["end_hub"].replace(
-                    "[", "").replace("]", "").split(" ")
-                for i in range(1, len(line)):
-                    if i == 1:
-                        try:
-                            name = line[i]
-                            if name != "goal":
-                                raise Exception(
-                                    "end_hub should be the first word")
-                        except Exception as e:
-                            print(e)
-                            return False
-
-                    if i == 2:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
-
-                    if i == 3:
-                        try:
-                            int(line[i])
-                        except Exception:
-                            print("coordinate should be an integer")
-                            return False
-
-                    if i == 4:
-                        if line[i].startswith("color"):
-                            color = line[i].split("=")[1]
-                            colors = [
-                                "blue", "red", "green", "orange", "yellow"]
-                            try:
-                                if color not in colors:
-                                    raise Exception(
-                                        "colors allowed are blue, red, "
-                                        "green, orange and yellow")
-                            except Exception as e:
-                                print(e)
-                                return False
-                        else:
-                            raise Exception("should start with color")
-
-                    if i == 5:
-                        if line[i].startswith("max_drones"):
-                            max = line[i].split("=")[1]
-                            try:
-                                int(max)
-                                if int(max) < 1:
-                                    raise Exception("max_drones should be an "
-                                                    "integer >= 1")
-                            except Exception:
-                                print("max_drones should be an integer >= 1")
-                                return False
+            elif key == "end_hub":
+                parsed = self._parse_hub_line(conf[key], "goal")
+                if parsed is None:
+                    return False
+                _, _, _, tags = parsed
+                if "color" in tags and tags["color"] not in colors:
+                    print("colors allowed are blue, red, green, "
+                          "orange and yellow")
+                    return False
 
         return True
