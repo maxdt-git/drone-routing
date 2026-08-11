@@ -1,5 +1,5 @@
 CONFIG = config.txt
-MAIN = parsing/parse.py
+MAIN = generator.py
 
 
 # install:

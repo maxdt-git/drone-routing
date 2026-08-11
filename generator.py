@@ -25,7 +25,7 @@ class Generator:
             y = int(line[2])
         except ValueError:
             return None
-        tags = self.conf.parse_tags(line[3:])
+        tags = self.conf.parse_hub_tags(line[3:])
         if tags is None:
             return None
         color = tags.get("color", "")
@@ -71,18 +71,17 @@ class Generator:
                     self.parsed[key], "goal", nb_drones)
                 if end is None:
                     return None
-                hub_list.append({"end": end})
+                hub_list.append({"goal": end})
 
         return hub_list
 
 
 def main() -> None:
-    # conf = Parser()
     gen = Generator()
     hub_list = gen.generate_hub_list()
     if not hub_list:
         return None
-    print(hub_list[0]['start'].max_drones)
+    print(hub_list)
 
 
 if __name__ == "__main__":
