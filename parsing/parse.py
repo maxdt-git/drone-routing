@@ -143,11 +143,12 @@ class Parser:
 
     def parse_connection_line(
             self, value: str
-    ) -> tuple[str, str, dict[str, str]] | None:
+    ) -> tuple[str, str, str, dict[str, str]] | None:
         """
-        Parse "<name> <x> <y> [max_link_capacity=val ...]"
+        Parse "<start>-<end> [max_link_capacity=val]"
         """
         line = value.replace("[", "").replace("]", "").split()
+
         if not line:
             print("invalid tag : expected start-end")
             return None
@@ -161,16 +162,17 @@ class Parser:
             print("invalid tag : expected start-end")
             return None
 
+        name = line[0]
         tags: dict[str, str] = {}
 
         if len(line) > 1:
             if "=" not in line[1]:
-                print("invalid tag : expected start-end")
+                print("invalid tag : expected max_link_capacity=int")
                 return None
             tag_key, tag_value = line[1].split("=", 1)
             tags[tag_key] = tag_value
 
-        return start, end, tags
+        return name, start, end, tags
 
     def parse_connection(self, conf: dict[str, str] | None) -> bool:
         """
@@ -202,7 +204,7 @@ class Parser:
                 parsed = self.parse_connection_line(conf[key])
                 if parsed is None:
                     return False
-                name1, name2, tags = parsed
+                name, name1, name2, tags = parsed
                 if name1 == name2:
                     print("In connection, start should be different the end")
                     return False
@@ -224,13 +226,13 @@ class Parser:
         return True
 
 
-def main() -> None:
-    parse = Parser()
-    # parsed = parse.extract_dict(sys.argv[1])
-    # print(parsed)
+# def main() -> None:
+#     parse = Parser()
+#     parsed = parse.extract_dict(sys.argv[1])
+#     print(parsed)
 
-    print(parse.parse_connection_line(""))
+#     print(parse.parse_connection_line(""))
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

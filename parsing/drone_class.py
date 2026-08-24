@@ -19,10 +19,13 @@ class Connection:
     """
     Represent a link between two Zone
     """
-    def __init__(self, name1: str, name2: str, max_link_capacity: int):
+    def __init__(
+            self, connec_name: str, name1: str, name2: str,
+            max_link_capacity: int):
         """
         Init the the name of the 2 linked zone and the max_link_capacity
         """
+        self.name = connec_name
         self.zone1 = name1
         self.zone2 = name2
         self.max_link_capacity = max_link_capacity

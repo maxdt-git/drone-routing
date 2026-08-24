@@ -2,8 +2,6 @@ CONFIG = config.txt
 MAIN = generator.py
 
 
-# install:
-
 run:
 	python3 $(MAIN) $(CONFIG)
 

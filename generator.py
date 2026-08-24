@@ -37,6 +37,10 @@ class Generator:
         if not self.conf.parse_hub(self.parsed):
             return None
 
+        nb_drones = self.conf.parse_nb_drones(self.parsed)
+        if not nb_drones:
+            return None
+        
         try:
             nb_drones = int(self.parsed.get("nb_drones", "1"))
         except ValueError:
@@ -76,35 +80,57 @@ class Generator:
         parsed = self.conf.parse_connection_line(value)
         if parsed is None:
             return None
-        name1, name2, max_link_capacity = parsed
+        connec_name, name1, name2, max_link_capacity = parsed
         try:
-            max_link_capacity = int(
+            tags = int(
                 max_link_capacity.get(
                     "max_link_capacity", default_max_link_capacity))
         except ValueError:
             return None
         return Connection(
-            name1, name2, max_link_capacity)
+            connec_name, name1, name2, tags)
 
     def generate_connection_list(self) -> list[dict[str, Connection]] | None:
         """
-        Generate the connection list using parse_hub and build_connection
+        Generate the connection list using parse_connection
+        and build_connection
         """
         if not self.parsed:
             return None
-        if not self.conf.parse_hub(self.parsed):
+        if not self.conf.parse_connection(self.parsed):
             return None
 
-def main() -> None:
-    gen = Generator()
-    # hub_list = gen.generate_hub_list()
-    # if not hub_list:
-    #     return None
-    # print(hub_list)
+        try:
+            max_link_capacity = int(self.parsed.get("nb_drones", "1"))
+        except ValueError:
+            max_link_capacity = 1
 
-    connection = gen.build_connection(" start-junction", 2)
-    print(connection)
+        connection_list: list[dict[str, Connection]] = []
+
+        for key in self.parsed:
+            if key.startswith("connection"):
+                connection = self.build_connection(
+                    self.parsed[key], max_link_capacity)
+                if connection is None:
+                    return None
+                connection_list.append({connection.name: connection})
+
+        return connection_list
 
 
-if __name__ == "__main__":
-    main()
+# def main() -> None:
+#     gen = Generator()
+#     hub_list = gen.generate_hub_list()
+#     if not hub_list:
+#         return None
+#     print(hub_list)
+
+#     connection = gen.build_connection("start-junction", 2)
+#     list_connec = gen.generate_connection_list()
+#     if not list_connec:
+#         return None
+#     print(list_connec[0]["start-junction"].max_link_capacity)
+
+
+# if __name__ == "__main__":
+#     main()
