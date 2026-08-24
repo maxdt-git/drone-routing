@@ -88,8 +88,7 @@ class Parser:
 
     def parse_hub(self, conf: dict[str, str] | None) -> bool:
         """
-        Parse the start_hub, all the hubs and end_hub
-        before stock it in Zone and then Map
+        Parse the start_hub, all the hubs and end_hub and return a bool
         """
         if not conf:
             return False
@@ -153,7 +152,7 @@ class Parser:
             print("invalid tag : expected start-end")
             return None
 
-        if "-" not in line[0] or line.count("-") != 1:
+        if "-" not in line[0] or line[0].count("-") != 1:
             print("invalid tag : expected start-end")
             return None
 
@@ -162,12 +161,9 @@ class Parser:
             print("invalid tag : expected start-end")
             return None
 
-        if len(line) < 2:
-            print("invalid tag : expected start-end")
-            return None
         tags: dict[str, str] = {}
 
-        if line[1]:
+        if len(line) > 1:
             if "=" not in line[1]:
                 print("invalid tag : expected start-end")
                 return None
@@ -175,6 +171,57 @@ class Parser:
             tags[tag_key] = tag_value
 
         return start, end, tags
+
+    def parse_connection(self, conf: dict[str, str] | None) -> bool:
+        """
+        Parse the connection data and returns a bool
+        """
+        if not conf:
+            return False
+
+        zone_names: set[str] = set()
+        for key, value in conf.items():
+            if key == "start_hub":
+                parsed_hub = self.parse_hub_line(value, "start")
+            elif key == "end_hub":
+                parsed_hub = self.parse_hub_line(value, "goal")
+            elif key.startswith("hub"):
+                parsed_hub = self.parse_hub_line(value)
+            else:
+                continue
+            if parsed_hub is None:
+                return False
+            name = parsed_hub[0]
+            if name in zone_names:
+                print(f"duplicate zone name: {name}")
+                return False
+            zone_names.add(name)
+
+        for key in conf:
+            if key.startswith("connection"):
+                parsed = self.parse_connection_line(conf[key])
+                if parsed is None:
+                    return False
+                name1, name2, tags = parsed
+                if name1 == name2:
+                    print("In connection, start should be different the end")
+                    return False
+                if name1 not in zone_names or name2 not in zone_names:
+                    print(f"connection references an undefined zone: "
+                          f"{name1}-{name2}")
+                    return False
+
+                if "max_link_capacity" in tags:
+                    try:
+                        max_link = int(tags["max_link_capacity"])
+                        if max_link < 1:
+                            raise ValueError
+                    except ValueError:
+                        print(
+                            "max_link_capacity should be an integer >= 1")
+                        return False
+
+        return True
 
 
 def main() -> None:

@@ -1,4 +1,4 @@
-from parsing import Parser, Zone
+from parsing import Parser, Zone, Connection
 import sys
 
 
@@ -7,27 +7,18 @@ class Generator:
         self.conf = Parser()
         self.parsed = self.conf.extract_dict(sys.argv[1])
 
-    def _build_zone(
+    def build_zone(
         self, value: str, expected_name: str | None,
         default_max_drones: int
     ) -> Zone | None:
         """
-        Build a Zone from a hub line, reading tags with the key
+        Build a Zone from an already-parsed hub line, reusing
+        parse_hub_line
         """
-        line = value.replace("[", "").replace("]", "").split()
-        if len(line) < 3:
+        parsed = self.conf.parse_hub_line(value, expected_name)
+        if parsed is None:
             return None
-        name = line[0]
-        if expected_name is not None and name != expected_name:
-            return None
-        try:
-            x = int(line[1])
-            y = int(line[2])
-        except ValueError:
-            return None
-        tags = self.conf.parse_hub_tags(line[3:])
-        if tags is None:
-            return None
+        name, x, y, tags = parsed
         color = tags.get("color", "")
         zone_type = tags.get("zone", "normal")
         try:
@@ -54,20 +45,20 @@ class Generator:
         hub_list: list[dict[str, Zone]] = []
         for key in self.parsed:
             if key == "start_hub":
-                start = self._build_zone(
+                start = self.build_zone(
                     self.parsed[key], "start", nb_drones)
                 if start is None:
                     return None
                 hub_list.append({"start": start})
 
             elif key.startswith("hub"):
-                hub = self._build_zone(self.parsed[key], None, 1)
+                hub = self.build_zone(self.parsed[key], None, 1)
                 if hub is None:
                     return None
                 hub_list.append({hub.name: hub})
 
             elif key == "end_hub":
-                end = self._build_zone(
+                end = self.build_zone(
                     self.parsed[key], "goal", nb_drones)
                 if end is None:
                     return None
@@ -75,13 +66,44 @@ class Generator:
 
         return hub_list
 
+    def build_connection(
+            self, value: str, default_max_link_capacity: int
+    ) -> Connection | None:
+        """
+        Build a Connection from an already-parsed connection line, reusing
+        parse_connection_line
+        """
+        parsed = self.conf.parse_connection_line(value)
+        if parsed is None:
+            return None
+        name1, name2, max_link_capacity = parsed
+        try:
+            max_link_capacity = int(
+                max_link_capacity.get(
+                    "max_link_capacity", default_max_link_capacity))
+        except ValueError:
+            return None
+        return Connection(
+            name1, name2, max_link_capacity)
+
+    def generate_connection_list(self) -> list[dict[str, Connection]] | None:
+        """
+        Generate the connection list using parse_hub and build_connection
+        """
+        if not self.parsed:
+            return None
+        if not self.conf.parse_hub(self.parsed):
+            return None
 
 def main() -> None:
     gen = Generator()
-    hub_list = gen.generate_hub_list()
-    if not hub_list:
-        return None
-    print(hub_list)
+    # hub_list = gen.generate_hub_list()
+    # if not hub_list:
+    #     return None
+    # print(hub_list)
+
+    connection = gen.build_connection(" start-junction", 2)
+    print(connection)
 
 
 if __name__ == "__main__":
