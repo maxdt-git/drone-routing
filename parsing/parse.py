@@ -108,9 +108,9 @@ class Parser:
                     return False
                 _, _, _, tags = parsed
                 if "color" in tags and tags["color"] not in colors:
-                    print("colors allowed are green, blue, red, yellow, " \
-                    "orange, cyan, purple, brown, lime, magenta, black, " \
-                    "maroon, gold, darkred, violet, crimson, rainbow")
+                    print("colors allowed are green, blue, red, yellow, "
+                          "orange, cyan, purple, brown, lime, magenta, black, "
+                          "maroon, gold, darkred, violet, crimson, rainbow")
                     return False
 
             elif key.startswith("hub"):
