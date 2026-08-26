@@ -12,6 +12,8 @@ class Parser:
                     raise Exception
                 for line in file:
                     line = line.strip()
+                    if not line:
+                        continue
                     if not line.startswith("#"):
                         if line.startswith("hub"):
                             key, value = line.split(":")
@@ -31,7 +33,7 @@ class Parser:
 
     def parse_nb_drones(self, conf: dict[str, str] | None) -> bool:
         """
-        Parse the nb_drones before stock it in Map
+        Parse the nb_drones to test the data
         """
         if not conf:
             return False
@@ -93,7 +95,10 @@ class Parser:
         if not conf:
             return False
 
-        colors = ["blue", "red", "green", "orange", "yellow"]
+        colors = [
+            "green", "blue", "red", "yellow", "orange", "cyan", "purple",
+            "brown", "lime", "magenta", "black", "maroon", "gold", "darkred",
+            "violet", "crimson", "rainbow"]
         zones = ["normal", "blocked", "restricted", "priority"]
 
         for key in conf:
@@ -103,8 +108,9 @@ class Parser:
                     return False
                 _, _, _, tags = parsed
                 if "color" in tags and tags["color"] not in colors:
-                    print("colors allowed are blue, red, green, "
-                          "orange and yellow")
+                    print("colors allowed are green, blue, red, yellow, " \
+                    "orange, cyan, purple, brown, lime, magenta, black, " \
+                    "maroon, gold, darkred, violet, crimson, rainbow")
                     return False
 
             elif key.startswith("hub"):
@@ -224,15 +230,3 @@ class Parser:
                         return False
 
         return True
-
-
-# def main() -> None:
-#     parse = Parser()
-#     parsed = parse.extract_dict(sys.argv[1])
-#     print(parsed)
-
-#     print(parse.parse_connection_line(""))
-
-
-# if __name__ == "__main__":
-#     main()

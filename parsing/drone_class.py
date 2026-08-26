@@ -35,14 +35,18 @@ class Map:
     """
     Represent the map with all the zones, connections and drones
     """
-    def __init__(self, nb_drones: int, start: Zone, end: Zone,
-                 zones: list[dict[str, Zone]], connections: list[Connection]):
+    def __init__(self,
+                 nb_drones: int,
+                 start_hub: Zone,
+                 zones: list[dict[str, Zone]],
+                 end_hub: Zone,
+                 connections: list[dict[str, Connection]]):
         """
         Init all the zones (start, end and the hubs), connections and
         the nb of drones
         """
         self.nb_drones = nb_drones
-        self.start = start
-        self.end = end
-        self.zones = zones
+        self.start_hub = start_hub
+        self.hubs = zones
+        self.end_hub = end_hub
         self.connections = connections

@@ -1,11 +1,28 @@
-from parsing import Parser, Zone, Connection
+from parsing import Parser, Zone, Connection, Map
 import sys
 
 
 class Generator:
+    """
+    Generator permits to build the hub_list, the connection_list,
+    and create the final map with all the data parsed
+    """
     def __init__(self) -> None:
+        """
+        Init the self.parsed which is the config
+        """
         self.conf = Parser()
         self.parsed = self.conf.extract_dict(sys.argv[1])
+
+    def check_nb_drones(self) -> int | None:
+        """
+        Check nb_drones before stocking it in map
+        """
+        if self.parsed is None:
+            return None
+        if not self.conf.parse_nb_drones(self.parsed):
+            return None
+        return int(self.parsed["nb_drones"])
 
     def build_zone(
         self, value: str, expected_name: str | None,
@@ -40,17 +57,17 @@ class Generator:
         nb_drones = self.conf.parse_nb_drones(self.parsed)
         if not nb_drones:
             return None
-        
+
         try:
-            nb_drones = int(self.parsed.get("nb_drones", "1"))
+            drones = int(self.parsed.get("nb_drones", "1"))
         except ValueError:
-            nb_drones = 1
+            drones = 1
 
         hub_list: list[dict[str, Zone]] = []
         for key in self.parsed:
             if key == "start_hub":
                 start = self.build_zone(
-                    self.parsed[key], "start", nb_drones)
+                    self.parsed[key], "start", drones)
                 if start is None:
                     return None
                 hub_list.append({"start": start})
@@ -63,7 +80,7 @@ class Generator:
 
             elif key == "end_hub":
                 end = self.build_zone(
-                    self.parsed[key], "goal", nb_drones)
+                    self.parsed[key], "goal", drones)
                 if end is None:
                     return None
                 hub_list.append({"goal": end})
@@ -117,20 +134,34 @@ class Generator:
 
         return connection_list
 
+    def generate_map(self) -> Map | None:
+        """
+        Generate the Map using the created hub_list, connection_list
+        and nb_drones
+        """
+        hub_list = self.generate_hub_list()
+        if not hub_list:
+            return None
 
-# def main() -> None:
-#     gen = Generator()
-#     hub_list = gen.generate_hub_list()
-#     if not hub_list:
-#         return None
-#     print(hub_list)
+        list_connec = self.generate_connection_list()
+        if not list_connec:
+            return None
 
-#     connection = gen.build_connection("start-junction", 2)
-#     list_connec = gen.generate_connection_list()
-#     if not list_connec:
-#         return None
-#     print(list_connec[0]["start-junction"].max_link_capacity)
+        nb_drones = self.check_nb_drones()
+        if not nb_drones:
+            return None
 
+        start: Zone | None = None
+        goal: Zone | None = None
 
-# if __name__ == "__main__":
-#     main()
+        for zone in hub_list:
+            for name in zone:
+                if name.startswith("start"):
+                    start = zone[name]
+                if name.startswith("goal"):
+                    goal = zone[name]
+
+        if start is None or goal is None:
+            return None
+
+        return Map(nb_drones, start, hub_list, goal, list_connec)

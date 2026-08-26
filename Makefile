@@ -1,21 +1,31 @@
-CONFIG = config.txt
-MAIN = generator.py
+CONFIG = maps/hard/01_maze_nightmare.txt
+MAIN = main.py
 
+
+venv:
+	python3 -m venv fly_venv
+
+install: venv
+	fly_venv/bin/pip install flake8
+	fly_venv/bin/pip install mypy
 
 run:
-	python3 $(MAIN) $(CONFIG)
+	fly_venv/bin/python3 $(MAIN) $(CONFIG)
 
 debug:
-	python3 -m pdb $(MAIN) $(CONFIG)
+	fly_venv/bin/python3 -m pdb $(MAIN) $(CONFIG)
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 
+fclean: clean
+	rm -rf fly_venv
+
 lint:
-	flake8 . --exclude=pacman_venv
-	mypy . --warn-return-any --warn-unused-ignores \
+	fly_venv/bin/flake8 . --exclude=fly_venv
+	fly_venv/bin/mypy . --warn-return-any --warn-unused-ignores \
 	--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 
-.PHONY: install run debug clean lint
+.PHONY: venv install run debug clean fclean lint
