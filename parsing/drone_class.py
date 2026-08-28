@@ -11,6 +11,7 @@ class Zone:
         self.x = x
         self.y = y
         self.type = type
+        self.cost = 2 if type == "restricted" else 1
         self.color = color
         self.max_drones = max_drones
 
@@ -23,7 +24,7 @@ class Connection:
             self, connec_name: str, name1: str, name2: str,
             max_link_capacity: int):
         """
-        Init the the name of the 2 linked zone and the max_link_capacity
+        Init the name of the 2 linked zone and the max_link_capacity
         """
         self.name = connec_name
         self.zone1 = name1

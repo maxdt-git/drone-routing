@@ -1,4 +1,4 @@
-CONFIG = maps/hard/01_maze_nightmare.txt
+CONFIG = maps/easy/02_simple_fork.txt
 MAIN = main.py
 
 
