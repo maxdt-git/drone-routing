@@ -69,30 +69,47 @@ class Pathfinding:
         """
         self.graph = graph
 
-    def shortest_path(self, start: str, end: str) -> list[str]:
+    def paths(
+            self, start: str, end: str,
+            excluded: set[str] | None = None) -> list[str]:
         """
         Find the shortest path from start to end using djikstra algo
         """
         dist: dict[str, int] = {}
         previous: dict[str, str] = {}
         queue: list[tuple[int, str]] = []
+        priority_count: dict[str, int] = {}
 
         dist[start] = 0
         heapq.heappush(queue, (0, start))
+        priority_count[start] = 0
 
         while queue:
             actual_cost, actual_zone = heapq.heappop(queue)
 
             for neighbor in self.graph.neighbors[actual_zone]:
-                name, _, path_cost = neighbor
+                name, connection, path_cost = neighbor
+                if excluded and connection.name in excluded:
+                    continue
+                candidate_priority = priority_count[actual_zone] + \
+                    (1 if self.graph.hubs[name].type == "priority" else 0)
                 candidate = actual_cost + path_cost
                 if name not in dist or candidate < dist[name]:
                     dist[name] = candidate
                     previous[name] = actual_zone
+                    priority_count[name] = candidate_priority
+                    heapq.heappush(queue, (candidate, name))
+                elif candidate == dist[name] and \
+                        candidate_priority > priority_count[name]:
+                    previous[name] = actual_zone
+                    priority_count[name] = candidate_priority
                     heapq.heappush(queue, (candidate, name))
 
             if actual_zone == end:
                 break
+
+        if end not in dist:
+            return []
 
         final_path: list[str] = []
 
@@ -103,3 +120,51 @@ class Pathfinding:
         final_path.reverse()
 
         return final_path
+
+    def connection_of(self, start: str, path: list[str]) -> set[str]:
+        """
+        Create a set of connections already seen
+        """
+        excluded: set[str] = set()
+        visited = [start] + path
+
+        for i in range(len(visited) - 1):
+            for name, connec, _ in self.graph.neighbors[visited[i]]:
+                if name == visited[i + 1]:
+                    excluded.add(connec.name)
+
+        return excluded
+
+    def path_cost(self, path: list[str]) -> int:
+        """
+        Return the cost of the path
+        """
+        return sum(self.graph.hubs[zone].cost for zone in path)
+
+    def find_multiple_path(
+            self, start: str, end: str, nb_paths: int = 3) -> list[list[str]]:
+        """
+        Find nb_paths paths in the map
+        """
+        result: list[list[str]] = []
+
+        first_path = self.paths(start, end)
+        result.append(first_path)
+
+        while len(result) < nb_paths:
+            all_used: set[str] = set()
+            candidates: list[list[str]] = []
+            for path in result:
+                all_used.update(self.connection_of(start, path))
+
+            for connec in all_used:
+                candidate = self.paths(start, end, {connec})
+                if candidate and candidate not in result:
+                    candidates.append(candidate)
+
+            if not candidates:
+                break
+
+            result.append(min(candidates, key=self.path_cost))
+
+        return result

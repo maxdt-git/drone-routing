@@ -1,4 +1,4 @@
-CONFIG = maps/easy/02_simple_fork.txt
+CONFIG = maps/easy/01_linear_path.txt
 MAIN = main.py
 
 
@@ -27,5 +27,11 @@ lint:
 	fly_venv/bin/mypy . --warn-return-any --warn-unused-ignores \
 	--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
+lint-strict:
+	fly_venv/bin/flake8 . --exclude=fly_venv
+	fly_venv/bin/mypy . --warn-return-any --warn-unused-ignores \
+	--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs \
+	--strict
 
-.PHONY: venv install run debug clean fclean lint
+
+.PHONY: venv install run debug clean fclean lint lint-strict

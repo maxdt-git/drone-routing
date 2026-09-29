@@ -25,7 +25,11 @@ class Parser:
                             j += 1
                         else:
                             key, value = line.split(":")
-                            config[key] = value
+                            if key == "nb_drones" or key == "start_hub" \
+                                    or key == "end_hub":
+                                config[key] = value
+                            else:
+                                raise Exception(f"unrecognized key : {key}")
             return config
         except Exception as e:
             print(e)
@@ -145,6 +149,13 @@ class Parser:
                           "orange and yellow")
                     return False
 
+        if "start_hub" not in conf:
+            print("missing start_zone")
+            return False
+
+        if "end_hub" not in conf:
+            print("missing end_zone")
+            return False
         return True
 
     def parse_connection_line(
@@ -186,7 +197,7 @@ class Parser:
         """
         if not conf:
             return False
-
+        seen_pair: set[tuple[str, str]] = set()
         zone_names: set[str] = set()
         for key, value in conf.items():
             if key == "start_hub":
@@ -211,6 +222,13 @@ class Parser:
                 if parsed is None:
                     return False
                 name, name1, name2, tags = parsed
+                pair: tuple[str, str] = (name1, name2) if name1 < name2 \
+                    else (name2, name1)
+                if pair in seen_pair:
+                    print("connection already exists")
+                    return False
+                else:
+                    seen_pair.add(pair)
                 if name1 == name2:
                     print("In connection, start should be different the end")
                     return False

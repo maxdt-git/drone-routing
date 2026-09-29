@@ -117,10 +117,7 @@ class Generator:
         if not self.conf.parse_connection(self.parsed):
             return None
 
-        try:
-            max_link_capacity = int(self.parsed.get("nb_drones", "1"))
-        except ValueError:
-            max_link_capacity = 1
+        max_link_capacity = 1
 
         connection_list: list[dict[str, Connection]] = []
 
