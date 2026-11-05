@@ -2,6 +2,13 @@
 
 # Fly-in
 
+**Stack:** Python · Dijkstra (`heapq`, no graph library) · OOP · flake8 + mypy
+
+**Highlights**
+- Routes a fleet of drones through a capacity-constrained graph, minimizing total simulation turns
+- Simplified k-shortest-paths search to spread drones over several routes
+- Live tracking of zone and connection capacity, multi-turn transits
+
 ## Description
 
 Fly-in is a drone routing simulator. Given a map of connected zones (a
