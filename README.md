@@ -1,6 +1,4 @@
-*This activity has been created as part of the 42 curriculum by mde-nas.*
-
-# Fly-in
+# Drone Routing
 
 **Stack:** Python · Dijkstra (`heapq`, no graph library) · OOP · flake8 + mypy
 
@@ -11,7 +9,7 @@
 
 ## Description
 
-Fly-in is a drone routing simulator. Given a map of connected zones (a
+A drone routing simulator. Given a map of connected zones (a
 start hub, an end hub, and a set of intermediate hubs linked by
 connections with movement costs and capacity limits), it computes routes
 for a fleet of drones and simulates their turn-by-turn movement from the
