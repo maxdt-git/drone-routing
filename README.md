@@ -1,15 +1,10 @@
-# Drone Routing
+*This activity has been created as part of the 42 curriculum by mde-nas.*
 
-**Stack:** Python · Dijkstra (`heapq`, no graph library) · OOP · flake8 + mypy
-
-**Highlights**
-- Routes a fleet of drones through a capacity-constrained graph, minimizing total simulation turns
-- Simplified k-shortest-paths search to spread drones over several routes
-- Live tracking of zone and connection capacity, multi-turn transits
+# Fly-in
 
 ## Description
 
-A drone routing simulator. Given a map of connected zones (a
+Fly-in is a drone routing simulator. Given a map of connected zones (a
 start hub, an end hub, and a set of intermediate hubs linked by
 connections with movement costs and capacity limits), it computes routes
 for a fleet of drones and simulates their turn-by-turn movement from the

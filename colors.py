@@ -1,5 +1,11 @@
 class Color:
+    """
+    Class color juste take chose color
+    """
     def chose_color(self, color: str) -> str:
+        """
+        Func takes a color on parameter and return the ansi code of the color
+        """
         if color == "green":
             return "\033[0;32m"
         elif color == "blue":

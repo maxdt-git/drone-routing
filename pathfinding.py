@@ -142,7 +142,7 @@ class Pathfinding:
         return sum(self.graph.hubs[zone].cost for zone in path)
 
     def find_multiple_path(
-            self, start: str, end: str, nb_paths: int = 3) -> list[list[str]]:
+            self, start: str, end: str, nb_paths: int = 10) -> list[list[str]]:
         """
         Find nb_paths paths in the map
         """

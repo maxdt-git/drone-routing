@@ -4,6 +4,9 @@ from simulation import Simulation
 
 
 def main() -> None:
+    """
+    Main to run all the simu, we call it with the config map
+    """
     gen = Generator()
     map = gen.generate_map()
     if not map:
